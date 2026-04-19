@@ -58,7 +58,14 @@ export const  fetchRestaurants = async(page = 1, search = "")=>{
 
 
 export const editRestaurant = async (data: Restaurant) => {
-  return await api.put(`/restaurant/${data.id}`, data);
+  try {
+    console.log(data);
+    
+    return await api.put(`/restaurant/${data.id}`, data);
+  } catch (error) {
+    console.log(error);
+    
+  }
 };
 
 

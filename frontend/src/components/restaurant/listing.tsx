@@ -89,10 +89,10 @@ const Listing = () => {
       if (!validate()) return;
       const res = await editRestaurant(data);
 
-      if (res.data.success) {
+      if (res?.data.success) {
         toast.success(res.data.message);
       } else {
-        toast.error(res.data.message);
+        toast.error(res?.data.message);
       }
 
       return res;

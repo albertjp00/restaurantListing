@@ -182,7 +182,7 @@ export interface IRepository {
   updateRestaurant(
     id: string,
     data: Omit<IRestaurant, "id">
-  ): Promise<void>;
+  ): Promise<any>;
 
   deleteRestaurant(id: string): Promise<void>;
 }

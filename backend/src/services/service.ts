@@ -255,22 +255,34 @@ export class Service implements IService {
     }
   };
 
-  updateRestaurant = async (id: string, data: any) => {
-    try {
+updateRestaurant = async (id: string, data: any) => {
+  try {
+
+    // ✅ ONLY check name if it exists in request
+    if (data.name) {
       const exists = await this._repository.findByName(data.name);
 
-      if (exists) {
+      console.log(exists , id);
+      
+
+      if (exists && exists.id.toString() !== id) {
         return { success: false, message: "Restaurant already exists" };
       }
-
-      await this._repository.updateRestaurant(id, data);
-
-      return { success: true, message: "Updated successfully" };
-    } catch (error) {
-      console.log(error);
-      return { success: false };
     }
-  };
+
+    const updated = await this._repository.updateRestaurant(id, data);
+
+    if (!updated) {
+      return { success: false, message: "Restaurant not found" };
+    }
+
+    return { success: true, message: "Updated successfully" };
+
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "Update failed" };
+  }
+};
 
   deleteRestaurant = async (id: string) => {
     try {

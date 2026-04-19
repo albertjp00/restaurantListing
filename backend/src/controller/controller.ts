@@ -12,8 +12,7 @@ import { NextFunction, Request, Response } from "express";
 import { Service } from "../services/service";
 
 export class Controller implements IController {
-    constructor(private _service : IService) {}
-
+  constructor(private _service: IService) {}
 
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -73,8 +72,8 @@ export class Controller implements IController {
         otp: req.body.otp,
       };
 
-      console.log('verify ',dto);
-      
+      console.log("verify ", dto);
+
       const result = await this._service.verifyOtp(dto);
       console.log("result ", result);
 
@@ -91,14 +90,13 @@ export class Controller implements IController {
     }
   };
 
-
-      resendOtp = async (req: Request, res: Response,next : NextFunction) => {
+  resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const {  email } = req.body;
+      const { email } = req.body;
 
       const result = await this._service.resendOtp(email);
-      console.log('result ',result);
-      
+      console.log("result ", result);
+
       if (result?.success) {
         res.status(HttpStatus.OK).json({ success: true });
       } else {
@@ -106,37 +104,43 @@ export class Controller implements IController {
       }
     } catch (error) {
       console.log(error);
-      next(error)
+      next(error);
     }
   };
 
-      forgotPassword = async (req: Request, res: Response,next : NextFunction) => {
+  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const {  email } = req.body;
+      const { email } = req.body;
 
       const result = await this._service.forgotPassword(email);
-      console.log('result ',result);
-      
+      console.log("result ", result);
+
       if (result?.success) {
         res.status(HttpStatus.OK).json({ success: true });
       } else {
-        res.status(HttpStatus.BAD_REQUEST).json({ success: false , message : result?.message });
+        res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ success: false, message: result?.message });
       }
     } catch (error) {
       console.log(error);
-      next(error)
+      next(error);
     }
   };
 
-    verifyResetPasswordOtp = async (req: Request, res: Response, next: NextFunction) => {
+  verifyResetPasswordOtp = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const dto: VerifyOtpDto = {
         email: req.body.email,
         otp: req.body.otp,
       };
 
-      console.log('reset password ',dto);
-      
+      console.log("reset password ", dto);
+
       const result = await this._service.verifyResetPasswordOtp(dto);
       console.log("result ", result);
 
@@ -153,18 +157,18 @@ export class Controller implements IController {
     }
   };
 
-  resetPassword = async (req: Request, res: Response,next : NextFunction) => {
+  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const dto: ResetPasswordDto = {
-      email: req.body.email,
-      newPassword: req.body.newPassword
-    };
+        email: req.body.email,
+        newPassword: req.body.newPassword,
+      };
 
       const result = await this._service.resetPassword(dto);
-     res.json({success : true})
+      res.json({ success: true });
     } catch (error) {
       console.log(error);
-      next(error)
+      next(error);
     }
   };
 
@@ -239,7 +243,7 @@ export class Controller implements IController {
     }
   };
 
-  updateRestaurant = async (req: AuthRequest, res: Response) => {
+  updateRestaurant = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const id = req.params.id;
 
@@ -248,13 +252,27 @@ export class Controller implements IController {
         req.body,
       );
 
+      console.log(result);
+      
+
       if (!result.success) {
-        res.json({ success: false, message: result.message });
+        res.status(400).json({
+          success: false,
+          message: result.message,
+        });
+        return;
       }
 
-      res.json(result);
+      res.status(200).json(result);
+      return;
     } catch (error) {
       console.log(error);
+
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+      return;
     }
   };
 }

@@ -161,21 +161,26 @@ getRestaurants = async (
 
 
 updateRestaurant = async (id: string, data: any) => {
-  const query = `
-    UPDATE restaurants
-    SET name=$1, address=$2, phone=$3, email=$4
-    WHERE id=$5
-  `;
+  const result = await pool.query(
+    `UPDATE restaurants 
+     SET 
+       name = COALESCE($1, name),
+       address = COALESCE($2, address),
+       phone = COALESCE($3, phone),
+       email = COALESCE($4, email)
+     WHERE id = $5 
+     RETURNING *`,
+    [
+      data.name ?? null,
+      data.address ?? null,
+      data.phone ?? null,
+      data.email ?? null,
+      id
+    ]
+  );
 
-  await pool.query(query, [
-    data.name,
-    data.address,
-    data.phone,
-    data.email,
-    id,
-  ]);
+  return result.rows[0] || null;
 };
-
 
 deleteRestaurant = async (id: string) => {
   await pool.query("DELETE FROM restaurants WHERE id = $1", [id]);
