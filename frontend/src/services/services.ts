@@ -12,6 +12,7 @@ export const  registerUser = async(formData : IRegisterForm)=>{
     }
 }
 
+
 export const  loginUser = async(formData : ILoginForm)=>{
     try {
         const res  = await api.post("/login", formData)

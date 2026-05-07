@@ -3,6 +3,7 @@ import Navbar from "../navbar/navbar";
 import { addRestaurant } from "../../services/services";
 import { useNavigate } from "react-router-dom";
 import type { Restaurant } from "../../interfaces/interface";
+import { toast } from "react-toastify";
 
 
 
@@ -69,11 +70,15 @@ const AddRestaurant = () => {
 
 
     const res = await addRestaurant(formData);
+    console.log(res);
+    
 
     if (res.data.success) {
       setSubmittedData(formData); // optional (store submitted data)
       setFormData({ name: "", address: "", phone: "", email: "" }); // ✅ correct reset
       navigate("/home");
+    }else{
+      toast.error(res.data.message)
     }
   };
 

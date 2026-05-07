@@ -88,6 +88,8 @@ const Listing = () => {
     try {
       if (!validate()) return;
       const res = await editRestaurant(data);
+      console.log(res);
+      
 
       if (res?.data.success) {
         toast.success(res.data.message);

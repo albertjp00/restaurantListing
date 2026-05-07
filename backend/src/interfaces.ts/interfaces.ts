@@ -24,6 +24,36 @@ export interface IController {
 }
 
 
+export interface IAuthController {
+  login(req: Request, res: Response , next : NextFunction): Promise<void>;
+
+  register(req: Request, res: Response, next : NextFunction): Promise<void>;
+
+  verifyOtp(req: Request, res: Response, next : NextFunction): Promise<void>;
+
+  resendOtp(req: Request, res: Response, next : NextFunction): Promise<void>;
+
+  forgotPassword(req: Request, res: Response, next : NextFunction): Promise<void>;
+
+  resetPassword(req: Request, res: Response, next : NextFunction): Promise<void>;
+
+}
+
+
+export interface IRestaurantController {
+
+
+  addRestaurant(req: AuthRequest, res: Response, next : NextFunction): Promise<void>;
+
+  getRestaurants(req: AuthRequest, res: Response, next : NextFunction): Promise<void>;
+
+  deleteRestaurant(req: Request, res: Response, next : NextFunction): Promise<void>;
+
+  updateRestaurant(req: Request, res: Response, next : NextFunction): Promise<void>;
+}
+
+
+
 
 
 
@@ -36,31 +66,18 @@ import {
 } from "../dto/dto";
 
 export interface IService {
-  loginRequest(dto: LoginDto): Promise<{
-    success: boolean;
-    message?: string;
-    token?: string;
-  }>;
+  loginRequest(dto: LoginDto): Promise<LoginResponse>;
 
-  registerRequest(dto: RegisterDto): Promise<{
-    success: boolean;
-    message: string;
-  }>;
+  registerRequest(dto: RegisterDto): Promise<RegisterResponse>;
 
-  verifyOtp(dto: VerifyOtpDto): Promise<{
-    success: boolean;
-    message: string;
-  }>;
+  verifyOtp(dto: VerifyOtpDto): Promise<VerifyResponse>;
 
   resendOtp(email: string): Promise<{
     success: boolean;
     message?: string;
   }>;
 
-  forgotPassword(email: string): Promise<{
-    success: boolean;
-    message?: string;
-  }>;
+  forgotPassword(email: string): Promise<ServiceResponse>;
 
   verifyResetPasswordOtp(dto: VerifyOtpDto): Promise<{
     success: boolean;
@@ -194,3 +211,33 @@ export interface IUser {
   name : string;
   phone : number
 }
+
+
+
+
+export type LoginResponse<T = any> = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  token?: string;
+};
+
+export type RegisterResponse<T = any> = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data?: T;
+};
+
+export type VerifyResponse<T = any> = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+};
+
+
+export type ServiceResponse = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+};

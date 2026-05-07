@@ -6,127 +6,85 @@ import {
   VerifyOtpDto,
 } from "../dto/dto";
 import { HttpStatus } from "../enums/httpStatus.enums";
-import { IController, IService } from "../interfaces.ts/interfaces";
+import { IController, IService, LoginResponse } from "../interfaces.ts/interfaces";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { NextFunction, Request, Response } from "express";
 import { Service } from "../services/service";
+import { log } from "console";
 
 export class Controller implements IController {
   constructor(private _service: IService) {}
 
-  login = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const dto: LoginDto = {
-        email: req.body.email,
-        password: req.body.password,
-      };
+login = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const dto: LoginDto = req.body;
 
-      const result = await this._service.loginRequest(dto);
-      if (!result) return;
-      if (result.success) {
-        res.status(HttpStatus.OK).json({ success: true, token: result.token });
-        return;
-      }
+    const result = await this._service.loginRequest(dto);    
 
-      res.json({ success: false, message: result.message });
-    } catch (error) {
-      next(error);
-    }
-  };
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
-  register = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const dto: RegisterDto = {
-        name: req.body.name,
-        phone: req.body.phone,
-        email: req.body.email,
-        password: req.body.password,
-      };
+register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const dto: RegisterDto = req.body;
 
-      const result = await this._service.registerRequest(dto);
+    const result = await this._service.registerRequest(dto);
+    console.log(result);
+    
 
-      console.log("register", result);
+    res.status(result.statusCode).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
-      if (!result?.success) {
-        res.json({ success: false, message: result?.message });
-      }
+verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const dto: VerifyOtpDto = req.body;
 
-      res.status(HttpStatus.OK).json({ success: true });
-    } catch (error) {
-      next(error);
-      res.status(500).json({
-        success: false,
-        message: "Registration failed",
-      });
-    }
-  };
+    const result = await this._service.verifyOtp(dto);
+    console.log('verify otop',result);
+    
 
-  verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const dto: VerifyOtpDto = {
-        email: req.body.email,
-        otp: req.body.otp,
-      };
-
-      console.log("verify ", dto);
-
-      const result = await this._service.verifyOtp(dto);
-      console.log("result ", result);
-
-      if (result?.success) {
-        res.status(HttpStatus.OK).json({ success: true });
-      } else {
-        res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ success: false, message: result?.message });
-      }
-    } catch (error) {
-      console.log(error);
-      next(error);
-    }
-  };
+    res.status(result.statusCode).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
   resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email } = req.body;
 
       const result = await this._service.resendOtp(email);
-      console.log("result ", result);
+      console.log("result resend ", result);
 
-      if (result?.success) {
-        res.status(HttpStatus.OK).json({ success: true });
-      } else {
-        res.status(HttpStatus.BAD_REQUEST).json({ success: false });
-      }
+      res.status(HttpStatus.OK).json(result);
+      
     } catch (error) {
       console.log(error);
       next(error);
     }
   };
 
-  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { email } = req.body;
+forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = req.body;
 
-      const result = await this._service.forgotPassword(email);
-      console.log("result ", result);
+    const result = await this._service.forgotPassword(email);
 
-      if (result?.success) {
-        res.status(HttpStatus.OK).json({ success: true });
-      } else {
-        res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ success: false, message: result?.message });
-      }
-    } catch (error) {
-      console.log(error);
-      next(error);
-    }
-  };
+    res.status(result.statusCode).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
   verifyResetPasswordOtp = async (
     req: Request,
@@ -178,7 +136,6 @@ export class Controller implements IController {
     next: NextFunction,
   ) => {
     try {
-      console.log(req.user?.id);
 
       const dto: AddRestaurantDto = {
         userId: req.user?.id as string,
@@ -188,7 +145,13 @@ export class Controller implements IController {
         email: req.body.email,
       };
 
+      console.log('add restaurant',dto);
+      
+
       const result = await this._service.addRestaurant(dto);
+
+      console.log(result);
+      
 
       res.json(result);
     } catch (error) {
@@ -255,13 +218,13 @@ export class Controller implements IController {
       console.log(result);
       
 
-      if (!result.success) {
-        res.status(400).json({
-          success: false,
-          message: result.message,
-        });
-        return;
-      }
+      // if (!result.success) {
+      //   res.status(400).json({
+      //     success: false,
+      //     message: result.message,
+      //   });
+      //   return;
+      // }
 
       res.status(200).json(result);
       return;
@@ -275,4 +238,6 @@ export class Controller implements IController {
       return;
     }
   };
+
+
 }

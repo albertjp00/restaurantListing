@@ -21,23 +21,25 @@ function VerifyOtp() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleVerify = async (e: React.FormEvent<HTMLFormElement>) => {
-    try {
-      e.preventDefault();
+const handleVerify = async (e: React.FormEvent<HTMLFormElement>) => {
+  try {
+    e.preventDefault();
 
-      const res = await verifyOtp(otp, email);
+    const res = await verifyOtp(otp, email);
 
-      if (res.data.success) {
-        toast.success("Otp verified");
-        navigate("/login");
-      } else {
-        toast.error(res.data.message);
-      }
-    } catch (error) {
-      const err = error as AxiosError<{ message: string }>;
-      toast.error(err.response?.data?.message || "Invalid OTP");
+    if (res.data.success) {
+      toast.success(res.data.message || "OTP verified");
+      navigate("/login");
+    } else {
+      toast.error(res.data.message);
     }
-  };
+
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+
+    toast.error(err.response?.data?.message || "Invalid OTP");
+  }
+};
 
   const handleResend = async () => {
     if (timer > 0) return;
@@ -57,7 +59,7 @@ function VerifyOtp() {
         <h2 className="text-2xl font-bold text-center mb-6">
           Verify OTP
         </h2>
-        
+   
 
         <form onSubmit={handleVerify} className="space-y-4">
           <input
