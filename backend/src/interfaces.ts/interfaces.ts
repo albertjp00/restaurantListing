@@ -99,11 +99,11 @@ export interface IService {
     page: number,
     limit: number,
     search: string
-  ): Promise<any>; // You can replace `any` with a proper type later
+  ): Promise<IRestaurantResponse>;
 
   updateRestaurant(
     id: string,
-    data: any
+    data: IRestaurant
   ): Promise<{
     success: boolean;
     message?: string;
@@ -125,10 +125,10 @@ export interface AuthResponse extends BasicResponse {
   token?: string;
 }
 
-export interface ImageResponse {
-  images: any[]; // better: define proper Image DTO
-  totalPages?: number;
-}
+// export interface ImageResponse {
+//   images: any[]; 
+//   totalPages?: number;
+// }
 
 export interface ImageOrder {
   id: string;
@@ -196,10 +196,10 @@ export interface IRepository {
     search: string
   ): Promise<IRestaurantResponse>;
 
-  updateRestaurant(
-    id: string,
-    data: Omit<IRestaurant, "id">
-  ): Promise<any>;
+updateRestaurant(
+  id: string,
+  data: Partial<IRestaurant>
+): Promise<IRestaurant | null>;
 
   deleteRestaurant(id: string): Promise<void>;
 }
@@ -215,21 +215,20 @@ export interface IUser {
 
 
 
-export type LoginResponse<T = any> = {
+export interface LoginResponse{
   success: boolean;
   message: string;
   statusCode: number;
   token?: string;
 };
 
-export type RegisterResponse<T = any> = {
+export interface RegisterResponse{
   success: boolean;
   message: string;
   statusCode: number;
-  data?: T;
 };
 
-export type VerifyResponse<T = any> = {
+export interface VerifyResponse{
   success: boolean;
   message: string;
   statusCode: number;
@@ -241,3 +240,14 @@ export type ServiceResponse = {
   message: string;
   statusCode: number;
 };
+
+
+
+
+export interface IRestaurant{
+    userId : string,
+    name : string,
+    address : string,
+    phone : number,
+    email : string,
+}

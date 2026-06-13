@@ -1,8 +1,6 @@
 import express from "express";
 import { Controller } from "../controller/controller";
-import multer from "multer";
 import { authMiddleware } from "../middleware/authMiddleware";
-import { upload } from "../utils/multer";
 import { Repository } from "../repository/repository";
 import { Service } from "../services/service";
 import { API_ROUTES } from "./routeConstants";
@@ -12,6 +10,8 @@ const router = express.Router();
 const repository = new Repository();
 const service = new Service(repository);
 const controller = new Controller(service);
+
+
 
 router.post(API_ROUTES.AUTH.REGISTER, controller.register);
 

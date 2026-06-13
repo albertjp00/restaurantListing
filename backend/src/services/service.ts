@@ -1,8 +1,5 @@
-import { Repository } from "../repository/repository";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import fs from "fs";
-import path from "path";
 import { generateOtp } from "../utils/otp";
 import { sendOtp } from "../utils/sendOtp";
 import { otpStore } from "../utils/otpStore";
@@ -13,7 +10,7 @@ import {
   ResetPasswordDto,
   VerifyOtpDto,
 } from "../dto/dto";
-import { IRepository, IService, LoginResponse, RegisterResponse, ServiceResponse, VerifyResponse } from "../interfaces.ts/interfaces";
+import { IRepository, IRestaurant, IRestaurantResponse, IService, LoginResponse, RegisterResponse, ServiceResponse, VerifyResponse } from "../interfaces.ts/interfaces";
 import { HttpStatus } from "../enums/httpStatus.enums";
 
 export interface ImageOrder {
@@ -287,19 +284,16 @@ verifyOtp = async (dto: VerifyOtpDto): Promise<VerifyResponse> => {
     page: number,
     limit: number,
     search: string,
-  ) => {
+  ):Promise<IRestaurantResponse> => {
     try {
       return await this._repository.getRestaurants(userId, page, limit, search);
     } catch (error) {
       console.log(error);
-      return {
-        success: false,
-        message: "Failed to fetch restaurants",
-      };
+      throw error
     }
   };
 
-updateRestaurant = async (id: string, data: any) => {
+updateRestaurant = async (id: string, data: Partial<IRestaurant>) => {
   try {
 
     // ✅ ONLY check name if it exists in request

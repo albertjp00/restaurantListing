@@ -1,23 +1,19 @@
 
 
-import pool from "../db";
-import { IRepository, IUser } from "../interfaces.ts/interfaces";
+import { db } from "../db/knex";
+import { IRepository, IRestaurant, IUser } from "../interfaces.ts/interfaces";
 
 
 export class Repository implements IRepository {
 
   async findUser(email: string): Promise<IUser | null> {
     try {
-      const result = await pool.query(
-        "SELECT id, email, password FROM users WHERE email = $1",
-        [email]
-      );
+      const user = await db("users")
+        .select("id", "email", "password")
+        .where({ email })
+        .first();
 
-      if (result.rows.length === 0) {
-        return null;
-      }
-
-      return result.rows[0];
+      return user || null;
     } catch (error) {
       console.error("Error finding user:", error);
       throw error;
@@ -25,42 +21,32 @@ export class Repository implements IRepository {
   }
 
 
-  async create(
-    name: string,
-    email: string,
-    phone: number,
-    password: string
-  ) {
-    try {
-      const query = `
-        INSERT INTO users (name, email, phone, password)
-        VALUES ($1, $2, $3, $4)
-        RETURNING *;
-      `;
-
-      const values = [name, email, phone, password];
-
-      const result = await pool.query(query, values);
-
-      return result.rows[0]; 
-    } catch (error) {
-      console.error("Error creating user:", error);
-      throw error;
-    }
-  }
-
-
-  findByName = async (name: string) => {
+async create(
+  name: string,
+  email: string,
+  phone: number,
+  password: string
+) {
   try {
-    const query = `
-      SELECT * FROM restaurants
-      WHERE name = $1
-      LIMIT 1
-    `;
+    const [user] = await db("users")
+      .insert({ name, email, phone, password })
+      .returning("*");
 
-    const result = await pool.query(query, [name]);
+    return user;
+  } catch (error) {
+    console.error("Error creating user:", error);
+    throw error;
+  }
+}
 
-    return result.rows[0] || null;
+
+findByName = async (name: string) => {
+  try {
+    const restaurant = await db("restaurants")
+      .where({ name })
+      .first();
+
+    return restaurant || null;
   } catch (error) {
     console.log(error);
     throw error;
@@ -70,16 +56,12 @@ export class Repository implements IRepository {
 
 changePassword = async (userId: string, hashedPassword: string) => {
   try {
-    const query = `
-      UPDATE users
-      SET password = $1
-      WHERE id = $2
-      RETURNING id
-    `;
+    const result = await db("users")
+      .where({ id: userId })
+      .update({ password: hashedPassword })
+      .returning("id");
 
-    const result = await pool.query(query, [hashedPassword, userId]);
-
-    if (result.rowCount === 0) {
+    if (result.length === 0) {
       return {
         success: false,
         message: "User not found",
@@ -97,22 +79,17 @@ changePassword = async (userId: string, hashedPassword: string) => {
 };
 
 
-  createRestaurant = async (data: any) => {
-  const query = `
-    INSERT INTO restaurants (user_id, name, address, phone, email)
-    VALUES ($1, $2, $3, $4, $5)
-  `;
-
-  const values = [
-    data.userId,
-    data.name,
-    data.address,
-    data.phone,
-    data.email,
-  ];
-
-  await pool.query(query, values);
+createRestaurant = async (data: IRestaurant) => {
+  await db("restaurants").insert({
+    user_id: data.userId,
+    name: data.name,
+    address: data.address,
+    phone: data.phone,
+    email: data.email,
+  });
 };
+
+
 
 getRestaurants = async (
   userId: string,
@@ -123,35 +100,25 @@ getRestaurants = async (
   try {
     const offset = (page - 1) * limit;
 
-    // 🔍 Search + Pagination Query
-    const query = `
-      SELECT id, name, address, phone, email
-      FROM restaurants
-      WHERE user_id = $1
-      AND name ILIKE $2
-      ORDER BY id DESC
-      LIMIT $3 OFFSET $4
-    `;
+    const query = db("restaurants")
+      .where("user_id", userId)
+      .andWhere("name", "ilike", `%${search}%`);
 
-    const values = [userId, `%${search}%`, limit, offset];
+    const restaurants = await query
+      .clone()
+      .select("id", "name", "address", "phone", "email")
+      .orderBy("id", "desc")
+      .limit(limit)
+      .offset(offset);
 
-    const result = await pool.query(query, values);
-
-    // 🔢 Total count for pagination
-    const countQuery = `
-      SELECT COUNT(*) FROM restaurants
-      WHERE user_id = $1
-      AND name ILIKE $2
-    `;
-
-    const countResult = await pool.query(countQuery, [userId, `%${search}%`]);
+    const [{ count }] = await query.clone().count("* as count");
 
     return {
-      restaurants: result.rows,
-      total: Number(countResult.rows[0].count),
+      restaurants,
+      total: Number(count),
       page,
       limit,
-      totalPages: Math.ceil(countResult.rows[0].count / limit),
+      totalPages: Math.ceil(Number(count) / limit),
     };
   } catch (error) {
     console.log(error);
@@ -160,30 +127,21 @@ getRestaurants = async (
 };
 
 
-updateRestaurant = async (id: string, data: any) => {
-  const result = await pool.query(
-    `UPDATE restaurants 
-     SET 
-       name = COALESCE($1, name),
-       address = COALESCE($2, address),
-       phone = COALESCE($3, phone),
-       email = COALESCE($4, email)
-     WHERE id = $5 
-     RETURNING *`,
-    [
-      data.name ?? null,
-      data.address ?? null,
-      data.phone ?? null,
-      data.email ?? null,
-      id
-    ]
-  );
+updateRestaurant = async (id: string, data: Partial<IRestaurant>) => {
+  const [updated] = await db("restaurants")
+    .where({ id })
+    .update({
+      ...(data.name && { name: data.name }),
+      ...(data.address && { address: data.address }),
+      ...(data.phone && { phone: data.phone }),
+      ...(data.email && { email: data.email }),
+    })
+    .returning("*");
 
-  return result.rows[0] || null;
+  return updated || null;
 };
 
 deleteRestaurant = async (id: string) => {
-  await pool.query("DELETE FROM restaurants WHERE id = $1", [id]);
+  await db("restaurants").where({ id }).del();
 };
-  
 }

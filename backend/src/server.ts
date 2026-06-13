@@ -2,10 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors";
-import mongoose from "mongoose";
 import router from "./routes/routes";
 import path from "node:path";
-import pool from "./db";
+import { db } from "./db/knex";
 
 
 const app = express();
@@ -31,7 +30,8 @@ app.use("/", router);
 
 const startServer = async () => {
   try {
-    await pool.connect();
+    // await pool.connect();
+    await db.raw("SELECT 1")
     console.log("PostgreSQL Connected");
 
 

@@ -6,23 +6,27 @@ import {
   VerifyOtpDto,
 } from "../dto/dto";
 import { HttpStatus } from "../enums/httpStatus.enums";
-import { IController, IService, LoginResponse } from "../interfaces.ts/interfaces";
+import { IController, IService } from "../interfaces.ts/interfaces";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { NextFunction, Request, Response } from "express";
-import { Service } from "../services/service";
-import { log } from "console";
 
 export class Controller implements IController {
   constructor(private _service: IService) {}
 
+
+
 login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const dto: LoginDto = req.body;
+    console.log('user',dto);
+    
 
-    const result = await this._service.loginRequest(dto);    
+    const result = await this._service.loginRequest(dto); 
 
     res.json(result);
   } catch (error) {
+    console.log(error);
+    
     next(error);
   }
 };
@@ -122,7 +126,7 @@ forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
         newPassword: req.body.newPassword,
       };
 
-      const result = await this._service.resetPassword(dto);
+      await this._service.resetPassword(dto);
       res.json({ success: true });
     } catch (error) {
       console.log(error);
